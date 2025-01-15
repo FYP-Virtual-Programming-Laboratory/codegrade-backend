@@ -33,6 +33,8 @@ COPY ./pyproject.toml ./uv.lock ./alembic.ini /codegrade_backend/
 
 COPY ./src /codegrade_backend/src
 
+COPY ./database /codegrade_backend/database
+
 # Sync the project
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#intermediate-layers
 RUN --mount=type=cache,target=/root/.cache/uv \

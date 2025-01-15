@@ -11,19 +11,19 @@ services:
       - run
       - --reload
       - "src/main.py"
+
     develop:
       watch:
         - path: ./codegrade_backend
           action: sync
           target: /codegrade_backend
           ignore:
-            - ./codegrade_backend/.venv
             - .venv
-        - path: ./codegrade_backend/pyproject.toml
+        - path: ./pyproject.toml
           action: rebuild
-    # TODO: remove once coverage is done locally
     volumes:
       - ./codegrade_backend/htmlcov:/codegrade_backend/htmlcov
+      - ./codegrade_backend/src:/codegrade_backend/src
     environment:
       SMTP_HOST: "mailcatcher"
       SMTP_PORT: "1025"
