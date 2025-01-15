@@ -1,0 +1,37 @@
+services:
+  codegrade-backend:
+    restart: "no"
+    ports:
+      - "8000:8000"
+    build:
+      context: ./codegrade_backend
+    # command: sleep infinity  # Infinite loop to keep container alive doing nothing
+    command:
+      - fastapi
+      - run
+      - --reload
+      - "src/main.py"
+    develop:
+      watch:
+        - path: ./codegrade_backend
+          action: sync
+          target: /codegrade_backend
+          ignore:
+            - ./codegrade_backend/.venv
+            - .venv
+        - path: ./codegrade_backend/pyproject.toml
+          action: rebuild
+    # TODO: remove once coverage is done locally
+    volumes:
+      - ./codegrade_backend/htmlcov:/codegrade_backend/htmlcov
+    environment:
+      SMTP_HOST: "mailcatcher"
+      SMTP_PORT: "1025"
+      SMTP_TLS: "false"
+      EMAILS_FROM_EMAIL: "noreply@example.com"
+
+  mailcatcher:
+    image: schickling/mailcatcher
+    ports:
+      - "1080:1080"
+      - "1025:1025"
