@@ -1,6 +1,10 @@
-from sqlmodel import Session, create_engine
+import logging
+
+from sqlmodel import Session, create_engine, select
 
 from src.core.config import settings
+
+logger = logging.getLogger(__name__)
 
 engine = create_engine(str(settings.SQLALCHEMY_DATABASE_URI))
 
@@ -19,4 +23,9 @@ def init_db(session: Session) -> None:  # noqa
     # from app.core.engine import engine
     # This works because the models are already imported and registered from app.models
     # SQLModel.metadata.create_all(engine)
-    pass
+    try:
+        # Try to create session to check if DB is awake
+        with Session(engine) as session:
+            session.exec(select(1))
+    except Exception as e:
+        logger.error(f"Failed to initialize DB: {e}")
