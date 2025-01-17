@@ -1,0 +1,50 @@
+name: CI
+
+# Enable Buildkit and let compose use it to speed up image building
+env:
+  DOCKER_BUILDKIT: 1
+  COMPOSE_DOCKER_CLI_BUILD: 1
+
+on:
+  pull_request:
+    branches: ['main']
+
+  push:
+    branches: ['main']
+
+concurrency:
+  group: ${{ github.head_ref || github.run_id }}
+  cancel-in-progress: true
+
+jobs:
+  linter:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+      - name: Run pre-commit
+        uses: pre-commit/action@v3.0.1
+
+  tests:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout Code Repository
+        uses: actions/checkout@v4
+
+      - name: Start services
+        run: docker compose up --build -d
+
+      - name: Run linting
+        run: docker compose run codegrade-backend bash /codegrade_backend/scripts/lint.sh
+
+      - name: Run Unit Tests
+        run: docker compose run codegrade-backend bash /codegrade_backend/scripts/tests-start.sh
+
+      - name: Tear down the Stack
+        run: docker compose down
