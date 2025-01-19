@@ -8,12 +8,12 @@ class UserRole(Enum):
     STUDENT: str = "student"
 
 
-class ExcerciseDificulty(Enum):
+class ExerciseDificulty(Enum):
     EASY: str = "easy"
     MODERATE: str = "moderate"
     HARD: str = "hard"
 
 
-class ExcerciseStatus(Enum):
+class ExerciseStatus(Enum):
     COMPLEMENTARY: str = "complementary"
     OPTIONAL: str = "optional"

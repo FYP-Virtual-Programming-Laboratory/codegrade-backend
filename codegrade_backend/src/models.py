@@ -14,7 +14,7 @@ from sqlmodel import (
     func,
 )
 
-from .enums import ExcerciseDificulty, ExcerciseStatus, UserRole
+from .enums import ExerciseDificulty, ExerciseStatus, UserRole
 
 
 class BaseModel(SQLModel):
@@ -79,14 +79,14 @@ class Exercise(BaseModel, table=True):
     session: Session = Relationship(sa_relationship_kwargs={"lazy": "select"})
     title: str
     question: str = Field(max_length=5000, nullable=False)
-    difficulty: ExcerciseDificulty = Field(
-        sa_column=Column(Enum(ExcerciseDificulty, name="exercise__difficulty"))
+    difficulty: ExerciseDificulty = Field(
+        sa_column=Column(Enum(ExerciseDificulty, name="exercise__difficulty"))
     )
-    status: ExcerciseStatus = Field(
-        sa_column=Column(Enum(ExcerciseStatus, name="exercise__status"))
+    status: ExerciseStatus = Field(
+        sa_column=Column(Enum(ExerciseStatus, name="exercise__status"))
     )
     max_score: PositiveInt
-    test_cases: list[TestCase] = Relationship(back_populates="excercise")
+    test_cases: list[TestCase] = Relationship(back_populates="exercise")
 
 
 class TestCase(BaseModel, table=True):
@@ -120,16 +120,16 @@ class Submission(BaseModel, table=True):
         back_populates="submission", sa_relationship_kwargs={"lazy": "select"}
     )
 
-    excercise_submissions: list[ExcerciseSubmission] = Relationship(
+    exercise_submissions: list[ExerciseSubmission] = Relationship(
         back_populates="submission", sa_relationship_kwargs={"lazy": "select"}
     )
 
 
-class ExcerciseSubmission(BaseModel, table=True):
+class ExerciseSubmission(BaseModel, table=True):
     external_id: str = Field(index=True, unique=True)
     submission_id: uuid.UUID = Field(foreign_key="submission.id")
     submission: Submission = Relationship(
-        back_populates="excercise_submissions",
+        back_populates="exercise_submissions",
         sa_relationship_kwargs={"lazy": "select"},
     )
 
@@ -145,7 +145,7 @@ class ExcerciseSubmission(BaseModel, table=True):
 
 class TestCaseResult(BaseModel, table=True):
     external_id: str = Field(index=True, unique=True)
-    submission_id: uuid.UUID = Field(foreign_key="excercisesubmission.id")
+    submission_id: uuid.UUID = Field(foreign_key="exercisesubmission.id")
     submission: Submission = Relationship(
         back_populates="test_case_results",
         sa_relationship_kwargs={"lazy": "select"},
