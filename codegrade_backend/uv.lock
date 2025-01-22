@@ -311,6 +311,31 @@ wheels = [
 ]
 
 [[package]]
+name = "factory-boy"
+version = "3.3.1"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "faker" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/99/3d/8070dde623341401b1c80156583d4c793058fe250450178218bb6e45526c/factory_boy-3.3.1.tar.gz", hash = "sha256:8317aa5289cdfc45f9cae570feb07a6177316c82e34d14df3c2e1f22f26abef0", size = 163924 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/33/cf/44ec67152f3129d0114c1499dd34f0a0a0faf43d9c2af05bc535746ca482/factory_boy-3.3.1-py2.py3-none-any.whl", hash = "sha256:7b1113c49736e1e9995bc2a18f4dbf2c52cf0f841103517010b1d825712ce3ca", size = 36878 },
+]
+
+[[package]]
+name = "faker"
+version = "34.0.0"
+source = { registry = "https://pypi.org/simple" }
+dependencies = [
+    { name = "python-dateutil" },
+    { name = "typing-extensions" },
+]
+sdist = { url = "https://files.pythonhosted.org/packages/06/03/fd1c777e9d0bb7aff7bc334977cf8a32a851fce945ffdb32d4c4baa61a55/faker-34.0.0.tar.gz", hash = "sha256:f64f148fb5cda8bc562045988e6e2a23a25264cbc9da14ffe24bbc1a432b07a6", size = 1855767 }
+wheels = [
+    { url = "https://files.pythonhosted.org/packages/60/b5/033fc51d707f23912e9bd4f8c8d11c334a9fa8835e2d4ada5a2dbf81f000/Faker-34.0.0-py3-none-any.whl", hash = "sha256:803d2dc77812173e12f7beab32c224570d5de76fd451b5f041786e479d08a128", size = 1895558 },
+]
+
+[[package]]
 name = "fastapi"
 version = "0.115.0"
 source = { registry = "https://pypi.org/simple" }
@@ -1229,6 +1254,7 @@ dependencies = [
     { name = "bcrypt" },
     { name = "email-validator" },
     { name = "emails" },
+    { name = "factory-boy" },
     { name = "fastapi", extra = ["standard"] },
     { name = "httpx" },
     { name = "jinja2" },
@@ -1260,6 +1286,7 @@ requires-dist = [
     { name = "bcrypt", specifier = "==4.0.1" },
     { name = "email-validator", specifier = ">=2.1.0.post1,<3.0.0.0" },
     { name = "emails", specifier = ">=0.6,<1.0" },
+    { name = "factory-boy", specifier = ">=3.3.1" },
     { name = "fastapi", extras = ["standard"], specifier = ">=0.114.2,<1.0.0" },
     { name = "httpx", specifier = ">=0.25.1,<1.0.0" },
     { name = "jinja2", specifier = ">=3.1.4,<4.0.0" },

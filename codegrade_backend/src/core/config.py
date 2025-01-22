@@ -49,17 +49,17 @@ class Settings(BaseSettings):
 
     PROJECT_NAME: str
     SENTRY_DSN: HttpUrl | None = None
-    POSTGRES_SERVER: str = ""
-    POSTGRES_PORT: int = 5432
-    POSTGRES_USER: str = ""
-    POSTGRES_PASSWORD: str = ""
-    POSTGRES_DB: str = ""
     SQLITE_DATABASE_PATH: str
+    TEST_DATABASE_PATH: str
 
     @computed_field  # type: ignore[prop-decorator]
     @property
     def SQLALCHEMY_DATABASE_URI(self) -> str:
-        path = os.path.realpath(self.SQLITE_DATABASE_PATH)
+        path = (
+            os.path.realpath(self.SQLITE_DATABASE_PATH)
+            if self.ENVIRONMENT in ["local", "production"]
+            else os.path.realpath(self.TEST_DATABASE_PATH)
+        )
         return f"sqlite://{path}"
 
     SMTP_TLS: bool = True
@@ -97,7 +97,7 @@ class Settings(BaseSettings):
                 f'The value of {var_name} is "changethis", '
                 "for security, please change it, at least for deployments."
             )
-            if self.ENVIRONMENT == "local":
+            if self.ENVIRONMENT in ["local", "staging"]:
                 warnings.warn(message, stacklevel=1)
             else:
                 raise ValueError(message)
@@ -105,7 +105,6 @@ class Settings(BaseSettings):
     @model_validator(mode="after")
     def _enforce_non_default_secrets(self) -> Self:
         self._check_default_secret("SECRET_KEY", self.SECRET_KEY)
-        self._check_default_secret("POSTGRES_PASSWORD", self.POSTGRES_PASSWORD)
         self._check_default_secret(
             "FIRST_SUPERUSER_PASSWORD", self.FIRST_SUPERUSER_PASSWORD
         )
