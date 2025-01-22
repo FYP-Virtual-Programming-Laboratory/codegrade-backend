@@ -1,6 +1,9 @@
-FROM python:3.10
+FROM python:3.12-alpine
 
 WORKDIR /codegrade_backend/
+
+# Install OS dependecies bash
+RUN apk --no-cache add curl bash gcc python3-dev musl-dev linux-headers
 
 # Install uv
 # Ref: https://docs.astral.sh/uv/guides/integration/docker/#installing-uv
