@@ -1,10 +1,15 @@
 services:
 
+  redis:
+    image: redis:7.4
+
   prestart:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
     build:
       context: ./codegrade_backend
     command: bash ./scripts/prestart.sh
+    depends_on:
+      - redis
     volumes:
       - ./codegrade_backend/database:/codegrade_backend/database
     env_file:
@@ -23,6 +28,36 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
       - SENTRY_DSN=${SENTRY_DSN}
+
+  codegrade-worker:
+    restart: always
+    command: celery -A src.worker.celery worker --loglevel=info --logfile=logs/celery.log
+    build:
+      context: ./codegrade_backend
+    depends_on:
+      - redis
+      - prestart
+    volumes:
+      - ./codegrade_backend/database:/codegrade_backend/database
+      - ./codegrade_backend/logs:/codegrade_backend/logs
+    env_file:
+      - .env
+    environment:
+      - SQLITE_DATABASE_PATH=${SQLITE_DATABASE_PATH}
+      - DOMAIN=${DOMAIN}
+      - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
+      - ENVIRONMENT=${ENVIRONMENT}
+      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
+      - SECRET_KEY=${SECRET_KEY?Variable not set}
+      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
+      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
+      - SMTP_HOST=${SMTP_HOST}
+      - SMTP_USER=${SMTP_USER}
+      - SMTP_PASSWORD=${SMTP_PASSWORD}
+      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
+      - SENTRY_DSN=${SENTRY_DSN}
+      - CELERY_BROKER_URL=redis://redis:6379/0
+      - CELERY_RESULT_BACKEND=redis://redis:6379/0
 
 
   codegrade-backend:
@@ -31,10 +66,12 @@ services:
     build:
       context: ./codegrade_backend
     depends_on:
-      prestart:
-        condition: service_completed_successfully
+      - redis
+      - prestart
+      - codegrade-worker
     volumes:
       - ./codegrade_backend/database:/codegrade_backend/database
+      - ./codegrade_backend/logs:/codegrade_backend/logs
     env_file:
       - .env
     environment:
@@ -51,9 +88,11 @@ services:
       - SMTP_PASSWORD=${SMTP_PASSWORD}
       - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
       - SENTRY_DSN=${SENTRY_DSN}
+      - CELERY_BROKER_URL=${CELERY_BROKER_URL}
+      - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
 
     healthcheck:
-      test: ["CMD", "curl", "-f", "http://localhost:8000/api/v1/utils/health-check/"]
-      interval: 10s
+      test: "curl -s -f http://localhost:8000/api/v1/health-check/ | get -n 1 | grep 200"
+      interval: 30s
       timeout: 5s
       retries: 5
