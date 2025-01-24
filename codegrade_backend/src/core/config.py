@@ -72,6 +72,10 @@ class Settings(BaseSettings):
     EMAILS_FROM_EMAIL: str | None = None
     EMAILS_FROM_NAME: str | None = None
 
+    # Celery settings
+    CELERY_BROKER_URL: str = "redis://localhost:6379"
+    CELERY_RESULT_BACKEND: str = "redis://localhost:6379"
+
     @model_validator(mode="after")
     def _set_default_emails_from(self) -> Self:
         if not self.EMAILS_FROM_NAME:
