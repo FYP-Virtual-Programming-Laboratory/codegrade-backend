@@ -5,9 +5,11 @@ from pydantic import BaseModel
 from sqlmodel import Session
 
 from src.core.dependecies import require_db_session
-from src.worker import celery
+from src.events.api.routes import router as events_router
+from src.worker import celery_app
 
 router = APIRouter()
+router.include_router(events_router, prefix="/events", tags=["events"])
 
 
 class HealthCheckResponse(BaseModel):
@@ -23,5 +25,5 @@ def health_check(
     return HealthCheckResponse(
         status="ok",
         database_status=db_session.is_active and "ok" or "error",
-        worker_status=celery.control.inspect().ping() and "ok" or "error",
+        worker_status=celery_app.control.inspect().ping() and "ok" or "error",
     )
