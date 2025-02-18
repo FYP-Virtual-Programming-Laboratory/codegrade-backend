@@ -15,7 +15,7 @@ from sqlmodel import (
     func,
 )
 
-from .enums import ExerciseDificulty, ExerciseStatus, UserRole
+from .enums import ExerciseDificulty, ExerciseStatus, SubmissionStatus, UserRole
 
 
 class BaseModel(SQLModel):
@@ -123,6 +123,8 @@ class TestCase(BaseModel, table=True):
 
 
 class Submission(BaseModel, table=True):
+    session_id: uuid.UUID = Field(foreign_key="session.id")
+    session: Session = Relationship(sa_relationship_kwargs={"lazy": "select"})
     user_id: uuid.UUID | None = Field(foreign_key="user.id", nullable=True)
     user: User = Relationship(
         sa_relationship_kwargs={
@@ -130,7 +132,9 @@ class Submission(BaseModel, table=True):
             "primaryjoin": "and_(Submission.user_id==User.id, User.role=='STUDENT')",
         },
     )
-    graded: bool = Field(default=False)
+    status: SubmissionStatus = Field(
+        sa_column=Column(Enum(SubmissionStatus, name="submission__status"))
+    )
     total_score: PositiveFloat | None
     group_id: uuid.UUID | None = Field(foreign_key="studentgroup.id", nullable=True)
     group: StudentGroup = Relationship(sa_relationship_kwargs={"lazy": "select"})
@@ -144,7 +148,7 @@ class ExerciseSubmission(BaseModel, table=True):
 
     exercise_id: uuid.UUID = Field(foreign_key="exercise.id")
     exercise: Exercise = Relationship(sa_relationship_kwargs={"lazy": "select"})
-
+    graded: bool = Field(default=False)
     total_score: PositiveFloat | None
 
 

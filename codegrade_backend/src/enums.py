@@ -17,3 +17,10 @@ class ExerciseDificulty(Enum):
 class ExerciseStatus(Enum):
     COMPLEMENTARY: str = "complementary"
     OPTIONAL: str = "optional"
+
+
+class SubmissionStatus(Enum):
+    QUEUED: str = "queued"
+    IN_PROGRESS: str = "in_progress"
+    GRADED: str = "graded"
+    FAILED: str = "failed"
