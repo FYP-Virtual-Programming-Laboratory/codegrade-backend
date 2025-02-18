@@ -2,7 +2,10 @@ from abc import ABC, abstractmethod
 
 from sqlmodel import Session
 
-from src.events.handlers.shcemas import SessionCreationEventData
+from src.events.handlers.shcemas import (
+    InidividualSubmissionEventData,
+    SessionCreationEventData,
+)
 
 
 class AbstractLifeCycleEventHandler(ABC):
@@ -16,6 +19,6 @@ class AbstractLifeCycleEventHandler(ABC):
     def handle_event(
         self,
         external_session_id: str,
-        event_data: SessionCreationEventData,
+        event_data: SessionCreationEventData | InidividualSubmissionEventData,
     ) -> None:
         """Handle the event data."""

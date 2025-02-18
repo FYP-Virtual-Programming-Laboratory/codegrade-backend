@@ -53,3 +53,20 @@ class SessionCreationEventData(BaseModel):
             raise ValueError("Only one of students or groups can be set.")
 
         return self
+
+
+class InidividualSubmissionEventData(BaseModel):
+    external_group_id: str | None = None
+    external_student_id: str | None = None
+    external_exercise_ids: list[str] = Field(min_length=1)
+
+    @model_validator(mode="after")
+    def check_group_or_student_set(self) -> Self:
+        """Check that at least one of group or student is set."""
+        if not self.external_group_id and not self.external_student_id:
+            raise ValueError("At least one of group or student must be set.")
+
+        if self.external_group_id and self.external_student_id:
+            raise ValueError("Only one of group or student can be set.")
+
+        return self

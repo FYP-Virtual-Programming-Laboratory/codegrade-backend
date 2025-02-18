@@ -27,7 +27,7 @@ class SessionFactory(SQLAlchemyModelFactory):
         sqlalchemy_session = TestDBSession
 
     external_id = LazyAttribute(lambda o: str(uuid.uuid4()))
-    title = Sequence(lambda n: "test session %d" % n)
+    title = Sequence(lambda n: f"test session {n}")
     description = LazyAttribute(lambda o: fake.text())
     is_active = True
 
@@ -39,7 +39,7 @@ class StudentGroupFactory(SQLAlchemyModelFactory):
 
     external_id = LazyAttribute(lambda o: str(uuid.uuid4()))
     session = LazyAttribute(lambda o: SessionFactory())
-    group_title = Sequence(lambda n: "test group %d" % n)
+    group_title = Sequence(lambda n: f"test group {n}")
 
 
 class UserFactory(SQLAlchemyModelFactory):
@@ -63,7 +63,7 @@ class ExerciseFactory(SQLAlchemyModelFactory):
 
     external_id = LazyAttribute(lambda o: str(uuid.uuid4()))
     session = LazyAttribute(lambda o: SessionFactory())
-    title = Sequence(lambda n: "test exercise %d" % n)
+    title = Sequence(lambda n: f"test exercise {n}")
     question = LazyAttribute(lambda o: fake.text())
     difficulty = ExerciseDificulty.EASY
     status = ExerciseStatus.COMPLEMENTARY
@@ -88,6 +88,7 @@ class SubmissionFactory(SQLAlchemyModelFactory):
         model = Submission
         sqlalchemy_session = TestDBSession
 
+    session = LazyAttribute(lambda o: SessionFactory())
     external_id = LazyAttribute(lambda o: str(uuid.uuid4()))
     user = LazyAttribute(lambda o: UserFactory())
     exercise = LazyAttribute(lambda o: ExerciseFactory())

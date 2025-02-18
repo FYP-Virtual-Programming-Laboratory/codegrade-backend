@@ -7,6 +7,7 @@ from src.log import logger as main_logger
 celery_app = Celery(__name__, include=["src.worker", "src.events.tasks"])
 celery_app.conf.broker_url = settings.CELERY_BROKER_URL
 celery_app.conf.result_backend = settings.CELERY_RESULT_BACKEND
+celery_app.conf.task_default_queue = settings.CELERY_DEFAULT_QUEUE
 
 
 @task_prerun.connect

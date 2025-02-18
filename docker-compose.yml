@@ -3,34 +3,6 @@ services:
   redis:
     image: redis:7.4
 
-  prestart:
-    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
-    build:
-      context: ./codegrade_backend
-    command: bash ./scripts/prestart.sh
-    depends_on:
-      - redis
-    volumes:
-      - ./codegrade_backend/database:/codegrade_backend/database
-      - ./codegrade_backend/src:/codegrade_backend/src
-    env_file:
-      - .env
-    environment:
-      - SQLITE_DATABASE_PATH=${SQLITE_DATABASE_PATH}
-      - DOMAIN=${DOMAIN}
-      - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
-      - ENVIRONMENT=${ENVIRONMENT}
-      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
-      - SECRET_KEY=${SECRET_KEY?Variable not set}
-      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
-      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
-      - SENTRY_DSN=${SENTRY_DSN}
-      - EXTERNAL_API_KEY=${EXTERNAL_API_KEY}
-
   codegrade-backend:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
     restart: always
@@ -44,7 +16,7 @@ services:
       - ./codegrade_backend/logs:/codegrade_backend/logs
     env_file:
       - .env
-    environment:
+    environment: &common_env
       - SQLITE_DATABASE_PATH=${SQLITE_DATABASE_PATH}
       - DOMAIN=${DOMAIN}
       - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
@@ -60,6 +32,9 @@ services:
       - SENTRY_DSN=${SENTRY_DSN}
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
+      - CELERY_GRADING_QUEUE=${CELERY_GRADING_QUEUE?Variable not set}
+      - CELERY_LIFECYCLE_EVENTS_QUEUE=${CELERY_LIFECYCLE_EVENTS_QUEUE?Variable not set}
+      - CELERY_DEFAULT_QUEUE=${CELERY_DEFAULT_QUEUE?Variable not set}
       - EXTERNAL_API_KEY=${EXTERNAL_API_KEY}
 
     healthcheck:
@@ -68,9 +43,22 @@ services:
       timeout: 5s
       retries: 5
 
+  prestart:
+    image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
+    build:
+      context: ./codegrade_backend
+    command: bash ./scripts/prestart.sh
+    depends_on:
+      - redis
+    volumes:
+      - ./codegrade_backend/database:/codegrade_backend/database
+      - ./codegrade_backend/src:/codegrade_backend/src
+    env_file:
+      - .env
+    environment: *common_env
+
   codegrade-worker:
-    restart: always
-    command: celery -A src.worker.celery_app worker
+    entrypoint: ["/bin/bash", "-c", "./celery_entry_point.sh"]
     build:
       context: ./codegrade_backend
     depends_on:
@@ -83,20 +71,4 @@ services:
       - ./codegrade_backend/database:/codegrade_backend/database
     env_file:
       - .env
-    environment:
-      - SQLITE_DATABASE_PATH=${SQLITE_DATABASE_PATH}
-      - DOMAIN=${DOMAIN}
-      - FRONTEND_HOST=${FRONTEND_HOST?Variable not set}
-      - ENVIRONMENT=${ENVIRONMENT}
-      - BACKEND_CORS_ORIGINS=${BACKEND_CORS_ORIGINS}
-      - SECRET_KEY=${SECRET_KEY?Variable not set}
-      - FIRST_SUPERUSER=${FIRST_SUPERUSER?Variable not set}
-      - FIRST_SUPERUSER_PASSWORD=${FIRST_SUPERUSER_PASSWORD?Variable not set}
-      - SMTP_HOST=${SMTP_HOST}
-      - SMTP_USER=${SMTP_USER}
-      - SMTP_PASSWORD=${SMTP_PASSWORD}
-      - EMAILS_FROM_EMAIL=${EMAILS_FROM_EMAIL}
-      - SENTRY_DSN=${SENTRY_DSN}
-      - CELERY_BROKER_URL=redis://redis:6379/0
-      - CELERY_RESULT_BACKEND=redis://redis:6379/0
-      - EXTERNAL_API_KEY=${EXTERNAL_API_KEY}
+    environment: *common_env

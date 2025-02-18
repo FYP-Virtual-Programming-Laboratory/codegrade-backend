@@ -1,8 +1,8 @@
-"""First Migration
+"""First migration
 
-Revision ID: 0ca50ffd32f7
+Revision ID: 85cd297477ae
 Revises:
-Create Date: 2025-02-18 14:21:13.788851
+Create Date: 2025-02-18 18:44:09.873894
 
 """
 from alembic import op
@@ -11,7 +11,7 @@ import sqlmodel.sql.sqltypes
 
 
 # revision identifiers, used by Alembic.
-revision = '0ca50ffd32f7'
+revision = '85cd297477ae'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -95,11 +95,13 @@ def upgrade():
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), nullable=True),
+    sa.Column('session_id', sa.Uuid(), nullable=False),
     sa.Column('user_id', sa.Uuid(), nullable=True),
-    sa.Column('graded', sa.Boolean(), nullable=False),
+    sa.Column('status', sa.Enum('QUEUED', 'IN_PROGRESS', 'GRADED', 'FAILED', name='submission__status'), nullable=True),
     sa.Column('total_score', sa.Float(), nullable=True),
     sa.Column('group_id', sa.Uuid(), nullable=True),
     sa.ForeignKeyConstraint(['group_id'], ['studentgroup.id'], ),
+    sa.ForeignKeyConstraint(['session_id'], ['session.id'], ),
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
@@ -109,6 +111,7 @@ def upgrade():
     sa.Column('updated_at', sa.TIMESTAMP(), nullable=True),
     sa.Column('submission_id', sa.Uuid(), nullable=False),
     sa.Column('exercise_id', sa.Uuid(), nullable=False),
+    sa.Column('graded', sa.Boolean(), nullable=False),
     sa.Column('total_score', sa.Float(), nullable=True),
     sa.ForeignKeyConstraint(['exercise_id'], ['exercise.id'], ),
     sa.ForeignKeyConstraint(['submission_id'], ['submission.id'], ),

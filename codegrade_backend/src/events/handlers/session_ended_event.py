@@ -8,7 +8,7 @@ class SessionEndedEventHandler(AbstractLifeCycleEventHandler):
     def handle_event(
         self,
         external_session_id: str,
-        event_data: SessionCreationEventData,
+        event_data: SessionCreationEventData,  # type: ignore
     ) -> None:
         """Handle the event data."""
         pass
