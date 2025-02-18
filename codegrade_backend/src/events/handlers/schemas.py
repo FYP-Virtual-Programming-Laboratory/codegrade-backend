@@ -55,10 +55,13 @@ class SessionCreationEventData(BaseModel):
         return self
 
 
+class SessionEndedEventData(BaseModel):
+    pass
+
+
 class InidividualSubmissionEventData(BaseModel):
     external_group_id: str | None = None
     external_student_id: str | None = None
-    external_exercise_ids: list[str] = Field(min_length=1)
 
     @model_validator(mode="after")
     def check_group_or_student_set(self) -> Self:

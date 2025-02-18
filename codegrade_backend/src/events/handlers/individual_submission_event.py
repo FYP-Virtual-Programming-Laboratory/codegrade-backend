@@ -3,11 +3,9 @@ from sqlmodel import or_, select
 
 from src.enums import SubmissionStatus
 from src.events.handlers.base import AbstractLifeCycleEventHandler
-from src.events.handlers.shcemas import InidividualSubmissionEventData
+from src.events.handlers.schemas import InidividualSubmissionEventData
 from src.log import logger
 from src.models import (
-    Exercise,
-    ExerciseSubmission,
     Session,
     StudentGroup,
     Submission,
@@ -21,7 +19,10 @@ class IndividualSubmissionEventHandler(AbstractLifeCycleEventHandler):
     def _get_session(self, external_session_id: str) -> Session:
         """Get the session."""
         return self.db_session.exec(
-            select(Session).where(Session.external_id == external_session_id)
+            select(Session).where(
+                Session.external_id == external_session_id,
+                Session.is_active == True,  # Only active sessions are considered
+            )
         ).one()
 
     def _get_student_group(
@@ -49,7 +50,6 @@ class IndividualSubmissionEventHandler(AbstractLifeCycleEventHandler):
         session: Session,
         user: User | None,
         group: StudentGroup | None,
-        event_data: InidividualSubmissionEventData,
     ) -> Submission | None:
         """Create the submission."""
 
@@ -75,23 +75,7 @@ class IndividualSubmissionEventHandler(AbstractLifeCycleEventHandler):
             group_id=group.id if group else None,
         )
 
-        # selected the excersises the user submitted
-        submitted_excersises = self.db_session.exec(
-            select(Exercise).where(
-                Exercise.external_id.in_(event_data.external_exercise_ids)  # type: ignore
-            )
-        ).all()
-
-        # created excersise submission to indicate the execersise the user submitted
-        exercise_submissions = [
-            ExerciseSubmission(
-                submission_id=submission.id,
-                exercise_id=exercise.id,
-            )
-            for exercise in submitted_excersises
-        ]
-
-        self.db_session.add_all([submission, *exercise_submissions])
+        self.db_session.add(submission)
         self.db_session.commit()
         return submission
 
@@ -104,9 +88,7 @@ class IndividualSubmissionEventHandler(AbstractLifeCycleEventHandler):
 
         try:
             session = self._get_session(external_session_id)
-
-            group = None
-            user = None
+            group, user = None, None
 
             if event_data.external_group_id:
                 group = self._get_student_group(session, event_data.external_group_id)
@@ -114,7 +96,7 @@ class IndividualSubmissionEventHandler(AbstractLifeCycleEventHandler):
             if event_data.external_student_id:
                 user = self._get_user(session, event_data.external_student_id)
 
-            submission = self._create_submission(session, user, group, event_data)
+            submission = self._create_submission(session, user, group)
 
             if submission:
                 # TODO: send the submission into grading queue.
