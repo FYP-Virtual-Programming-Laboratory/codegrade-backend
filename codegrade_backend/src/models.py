@@ -11,6 +11,7 @@ from sqlmodel import (
     Field,
     Relationship,
     SQLModel,
+    UniqueConstraint,
     func,
 )
 
@@ -44,7 +45,14 @@ class Session(BaseModel, table=True):
 
 
 class User(BaseModel, table=True):
-    external_id: str = Field(index=True, unique=True)
+    __table_args__ = (
+        UniqueConstraint(
+            "session_id",
+            "external_id",
+            name="session_id_unique_together_with_external_id",
+        ),
+    )
+    external_id: str = Field(index=True)
     session_id: uuid.UUID = Field(foreign_key="session.id")
     session: Session = Relationship(sa_relationship_kwargs={"lazy": "select"})
     first_name: str
@@ -57,18 +65,35 @@ class User(BaseModel, table=True):
 
 
 class StudentGroup(BaseModel, table=True):
-    external_id: str = Field(index=True, unique=True)
+    __table_args__ = (
+        UniqueConstraint(
+            "session_id",
+            "external_id",
+            name="session_id_unique_together_with_external_id",
+        ),
+    )
+
+    external_id: str = Field(index=True)
     session_id: uuid.UUID = Field(foreign_key="session.id")
     session: Session = Relationship(sa_relationship_kwargs={"lazy": "select"})
     group_title: str
 
 
 class Exercise(BaseModel, table=True):
-    external_id: str = Field(index=True, unique=True)
+    __table_args__ = (
+        UniqueConstraint(
+            "session_id",
+            "external_id",
+            name="session_id_unique_together_with_external_id",
+        ),
+    )
+
+    external_id: str = Field(index=True)
     session_id: uuid.UUID = Field(foreign_key="session.id")
     session: Session = Relationship(sa_relationship_kwargs={"lazy": "select"})
     title: str
-    question: str = Field(max_length=5000, nullable=False)
+    question: str = Field(max_length=10000, nullable=False)
+    instructions: str = Field(max_length=10000, nullable=True)
     difficulty: ExerciseDificulty = Field(
         sa_column=Column(Enum(ExerciseDificulty, name="exercise__difficulty"))
     )
@@ -79,7 +104,15 @@ class Exercise(BaseModel, table=True):
 
 
 class TestCase(BaseModel, table=True):
-    external_id: str = Field(index=True, unique=True)
+    __table_args__ = (
+        UniqueConstraint(
+            "exercise_id",
+            "external_id",
+            name="exercise_id_unique_together_with_external_id",
+        ),
+    )
+
+    external_id: str = Field(index=True)
     exercise_id: uuid.UUID = Field(foreign_key="exercise.id")
     exercise: Exercise = Relationship(sa_relationship_kwargs={"lazy": "select"})
 
@@ -90,7 +123,6 @@ class TestCase(BaseModel, table=True):
 
 
 class Submission(BaseModel, table=True):
-    external_id: str = Field(index=True, unique=True)
     user_id: uuid.UUID | None = Field(foreign_key="user.id", nullable=True)
     user: User = Relationship(
         sa_relationship_kwargs={
@@ -105,7 +137,6 @@ class Submission(BaseModel, table=True):
 
 
 class ExerciseSubmission(BaseModel, table=True):
-    external_id: str = Field(index=True, unique=True)
     submission_id: uuid.UUID = Field(foreign_key="submission.id")
     submission: Submission = Relationship(
         sa_relationship_kwargs={"lazy": "select"},
@@ -118,7 +149,6 @@ class ExerciseSubmission(BaseModel, table=True):
 
 
 class TestCaseResult(BaseModel, table=True):
-    external_id: str = Field(index=True, unique=True)
     submission_id: uuid.UUID = Field(foreign_key="exercisesubmission.id")
     submission: ExerciseSubmission = Relationship(
         sa_relationship_kwargs={"lazy": "select"}

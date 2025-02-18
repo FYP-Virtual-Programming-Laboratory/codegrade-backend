@@ -1,6 +1,5 @@
-from typing import Any
-
 from src.events.handlers.base import AbstractLifeCycleEventHandler
+from src.events.handlers.shcemas import SessionCreationEventData
 
 
 class IndividualSubmissionEventHandler(AbstractLifeCycleEventHandler):
@@ -9,7 +8,7 @@ class IndividualSubmissionEventHandler(AbstractLifeCycleEventHandler):
     def handle_event(
         self,
         external_session_id: str,
-        event_data: dict[str, Any],
+        event_data: SessionCreationEventData,
     ) -> None:
         """Handle the event data."""
         pass

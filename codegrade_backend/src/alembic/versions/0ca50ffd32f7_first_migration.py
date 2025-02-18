@@ -1,8 +1,8 @@
-"""First migration
+"""First Migration
 
-Revision ID: 3783a598f9de
+Revision ID: 0ca50ffd32f7
 Revises:
-Create Date: 2025-01-17 18:01:12.886799
+Create Date: 2025-02-18 14:21:13.788851
 
 """
 from alembic import op
@@ -11,7 +11,7 @@ import sqlmodel.sql.sqltypes
 
 
 # revision identifiers, used by Alembic.
-revision = '3783a598f9de'
+revision = '0ca50ffd32f7'
 down_revision = None
 branch_labels = None
 depends_on = None
@@ -37,14 +37,16 @@ def upgrade():
     sa.Column('external_id', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('session_id', sa.Uuid(), nullable=False),
     sa.Column('title', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
-    sa.Column('question', sqlmodel.sql.sqltypes.AutoString(length=5000), nullable=False),
+    sa.Column('question', sqlmodel.sql.sqltypes.AutoString(length=10000), nullable=False),
+    sa.Column('instructions', sqlmodel.sql.sqltypes.AutoString(length=10000), nullable=True),
     sa.Column('difficulty', sa.Enum('EASY', 'MODERATE', 'HARD', name='exercise__difficulty'), nullable=True),
     sa.Column('status', sa.Enum('COMPLEMENTARY', 'OPTIONAL', name='exercise__status'), nullable=True),
     sa.Column('max_score', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['session_id'], ['session.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('session_id', 'external_id', name='session_id_unique_together_with_external_id')
     )
-    op.create_index(op.f('ix_exercise_external_id'), 'exercise', ['external_id'], unique=True)
+    op.create_index(op.f('ix_exercise_external_id'), 'exercise', ['external_id'], unique=False)
     op.create_table('studentgroup',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
@@ -53,9 +55,10 @@ def upgrade():
     sa.Column('session_id', sa.Uuid(), nullable=False),
     sa.Column('group_title', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.ForeignKeyConstraint(['session_id'], ['session.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('session_id', 'external_id', name='session_id_unique_together_with_external_id')
     )
-    op.create_index(op.f('ix_studentgroup_external_id'), 'studentgroup', ['external_id'], unique=True)
+    op.create_index(op.f('ix_studentgroup_external_id'), 'studentgroup', ['external_id'], unique=False)
     op.create_table('testcase',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
@@ -67,9 +70,10 @@ def upgrade():
     sa.Column('percentage_score', sa.Float(), nullable=False),
     sa.Column('max_score', sa.Integer(), nullable=False),
     sa.ForeignKeyConstraint(['exercise_id'], ['exercise.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('exercise_id', 'external_id', name='exercise_id_unique_together_with_external_id')
     )
-    op.create_index(op.f('ix_testcase_external_id'), 'testcase', ['external_id'], unique=True)
+    op.create_index(op.f('ix_testcase_external_id'), 'testcase', ['external_id'], unique=False)
     op.create_table('user',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
@@ -83,14 +87,14 @@ def upgrade():
     sa.Column('group_id', sa.Uuid(), nullable=True),
     sa.ForeignKeyConstraint(['group_id'], ['studentgroup.id'], ),
     sa.ForeignKeyConstraint(['session_id'], ['session.id'], ),
-    sa.PrimaryKeyConstraint('id')
+    sa.PrimaryKeyConstraint('id'),
+    sa.UniqueConstraint('session_id', 'external_id', name='session_id_unique_together_with_external_id')
     )
-    op.create_index(op.f('ix_user_external_id'), 'user', ['external_id'], unique=True)
+    op.create_index(op.f('ix_user_external_id'), 'user', ['external_id'], unique=False)
     op.create_table('submission',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), nullable=True),
-    sa.Column('external_id', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('user_id', sa.Uuid(), nullable=True),
     sa.Column('graded', sa.Boolean(), nullable=False),
     sa.Column('total_score', sa.Float(), nullable=True),
@@ -99,12 +103,10 @@ def upgrade():
     sa.ForeignKeyConstraint(['user_id'], ['user.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_submission_external_id'), 'submission', ['external_id'], unique=True)
     op.create_table('exercisesubmission',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), nullable=True),
-    sa.Column('external_id', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('submission_id', sa.Uuid(), nullable=False),
     sa.Column('exercise_id', sa.Uuid(), nullable=False),
     sa.Column('total_score', sa.Float(), nullable=True),
@@ -112,12 +114,10 @@ def upgrade():
     sa.ForeignKeyConstraint(['submission_id'], ['submission.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_exercisesubmission_external_id'), 'exercisesubmission', ['external_id'], unique=True)
     op.create_table('testcaseresult',
     sa.Column('id', sa.Uuid(), nullable=False),
     sa.Column('created_at', sa.TIMESTAMP(), server_default=sa.text('(CURRENT_TIMESTAMP)'), nullable=False),
     sa.Column('updated_at', sa.TIMESTAMP(), nullable=True),
-    sa.Column('external_id', sqlmodel.sql.sqltypes.AutoString(), nullable=False),
     sa.Column('submission_id', sa.Uuid(), nullable=False),
     sa.Column('test_case_id', sa.Uuid(), nullable=False),
     sa.Column('passed', sa.Boolean(), nullable=False),
@@ -127,17 +127,13 @@ def upgrade():
     sa.ForeignKeyConstraint(['test_case_id'], ['testcase.id'], ),
     sa.PrimaryKeyConstraint('id')
     )
-    op.create_index(op.f('ix_testcaseresult_external_id'), 'testcaseresult', ['external_id'], unique=True)
     # ### end Alembic commands ###
 
 
 def downgrade():
     # ### commands auto generated by Alembic - please adjust! ###
-    op.drop_index(op.f('ix_testcaseresult_external_id'), table_name='testcaseresult')
     op.drop_table('testcaseresult')
-    op.drop_index(op.f('ix_exercisesubmission_external_id'), table_name='exercisesubmission')
     op.drop_table('exercisesubmission')
-    op.drop_index(op.f('ix_submission_external_id'), table_name='submission')
     op.drop_table('submission')
     op.drop_index(op.f('ix_user_external_id'), table_name='user')
     op.drop_table('user')

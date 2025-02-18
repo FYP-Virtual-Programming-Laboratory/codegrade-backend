@@ -26,6 +26,7 @@ dependencies = [
     "celery>=5.4.0",
     "redis>=5.2.1",
     "celery-types>=0.22.0",
+    "pre-commit>=3.8.0",
 ]
 
 [tool.uv]
