@@ -1,5 +1,5 @@
 from src.events.handlers.base import AbstractLifeCycleEventHandler
-from src.events.handlers.shcemas import (
+from src.events.handlers.schemas import (
     GroupCreationSchema,
     SessionCreationEventData,
     UserCreationSchema,

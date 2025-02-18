@@ -67,6 +67,8 @@ ignore = [
     "B008",  # do not perform function calls in argument defaults
     "W191",  # indentation contains tabs
     "B904",  # Allow raising exceptions without from e, for HTTPException
+    "E712",  # Avoid equality comparisons to `True` in sqlmodels queries
+    "E711", # Allow equality comparisons to `None` in sqlmodels queries
 ]
 
 [tool.ruff.lint.pyupgrade]
