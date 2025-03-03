@@ -43,4 +43,4 @@ COPY ./celery_entry_point.sh /codegrade_backend/celery_entry_point.sh
 RUN --mount=type=cache,target=/root/.cache/uv \
     uv sync
 
-CMD ["fastapi", "run", "--workers", "4", "src/main.py"]
+CMD ["fastapi", "run", "--reload", "--workers", "2", "src/main.py"]

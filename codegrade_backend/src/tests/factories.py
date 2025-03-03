@@ -10,7 +10,7 @@ from src.models import (
     Exercise,
     ExerciseSubmission,
     Session,
-    StudentGroup,
+    Group,
     Submission,
     TestCase,
     TestCaseResult,
@@ -32,9 +32,9 @@ class SessionFactory(SQLAlchemyModelFactory):
     is_active = True
 
 
-class StudentGroupFactory(SQLAlchemyModelFactory):
+class GroupFactory(SQLAlchemyModelFactory):
     class Meta:
-        model = StudentGroup
+        model = Group
         sqlalchemy_session = TestDBSession
 
     external_id = LazyAttribute(lambda o: str(uuid.uuid4()))
@@ -53,7 +53,7 @@ class UserFactory(SQLAlchemyModelFactory):
     last_name = LazyAttribute(lambda o: fake.last_name())
     email = LazyAttribute(lambda o: fake.email())
     role = UserRole.STUDENT
-    group = LazyAttribute(lambda o: StudentGroupFactory(session=o.session))
+    group = LazyAttribute(lambda o: GroupFactory(session=o.session))
 
 
 class ExerciseFactory(SQLAlchemyModelFactory):

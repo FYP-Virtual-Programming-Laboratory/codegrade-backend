@@ -78,7 +78,6 @@ class Settings(BaseSettings):
     CELERY_BROKER_URL: str = "redis://localhost:6379"
     CELERY_RESULT_BACKEND: str = "redis://localhost:6379"
     CELERY_GRADING_QUEUE: str
-    CELERY_LIFECYCLE_EVENTS_QUEUE: str
     CELERY_DEFAULT_QUEUE: str
 
     @model_validator(mode="after")

@@ -2,16 +2,27 @@ services:
 
   redis:
     image: redis:7.4
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
 
-  codegrade-backend:
+  server:
     image: '${DOCKER_IMAGE_BACKEND?Variable not set}:${TAG-latest}'
     restart: always
     build:
       context: ./codegrade_backend
     depends_on:
-      - redis
-      - prestart
-    volumes:
+      redis:
+        condition: service_healthy
+      prestart:
+        condition: service_completed_successfully
+    ports:
+      - "8050:8000"
+    volumes: &common_volume
+      - ./codegrade_backend/src:/codegrade_backend/src
       - ./codegrade_backend/database:/codegrade_backend/database
       - ./codegrade_backend/logs:/codegrade_backend/logs
     env_file:
@@ -33,10 +44,8 @@ services:
       - CELERY_BROKER_URL=${CELERY_BROKER_URL}
       - CELERY_RESULT_BACKEND=${CELERY_RESULT_BACKEND}
       - CELERY_GRADING_QUEUE=${CELERY_GRADING_QUEUE?Variable not set}
-      - CELERY_LIFECYCLE_EVENTS_QUEUE=${CELERY_LIFECYCLE_EVENTS_QUEUE?Variable not set}
       - CELERY_DEFAULT_QUEUE=${CELERY_DEFAULT_QUEUE?Variable not set}
       - EXTERNAL_API_KEY=${EXTERNAL_API_KEY}
-
     healthcheck:
       test: "curl -s -f http://localhost:8000/api/v1/health-check/ | get -n 1 | grep 200"
       interval: 30s
@@ -49,26 +58,23 @@ services:
       context: ./codegrade_backend
     command: bash ./scripts/prestart.sh
     depends_on:
-      - redis
-    volumes:
-      - ./codegrade_backend/database:/codegrade_backend/database
-      - ./codegrade_backend/src:/codegrade_backend/src
+      redis:
+        condition: service_healthy
+    volumes: *common_volume
+    environment: *common_env
     env_file:
       - .env
-    environment: *common_env
 
   codegrade-worker:
     entrypoint: ["/bin/bash", "-c", "./celery_entry_point.sh"]
     build:
       context: ./codegrade_backend
     depends_on:
-      - redis
-      - prestart
-      - codegrade-backend
-    volumes:
-      - ./codegrade_backend/src:/codegrade_backend/src
-      - ./codegrade_backend/logs:/codegrade_backend/logs
-      - ./codegrade_backend/database:/codegrade_backend/database
+      redis:
+        condition: service_healthy
+      server:
+        condition: service_started
+    volumes: *common_volume
+    environment: *common_env
     env_file:
       - .env
-    environment: *common_env

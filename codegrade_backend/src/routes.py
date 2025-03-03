@@ -6,10 +6,12 @@ from sqlmodel import Session
 
 from src.core.dependecies import require_db_session
 from src.events.api.routes import router as events_router
+from src.grading.routers import router as grading_routers
 from src.worker import celery_app
 
 router = APIRouter()
 router.include_router(events_router, prefix="/events", tags=["events"])
+router.include_router(grading_routers, prefix="/grading", tags=["grading"])
 
 
 class HealthCheckResponse(BaseModel):

@@ -4,7 +4,7 @@ from src.models import (
     Exercise,
     ExerciseSubmission,
     Session,
-    StudentGroup,
+    Group,
     Submission,
     TestCase,
     TestCaseResult,
@@ -14,7 +14,7 @@ from src.tests.factories import (
     ExerciseFactory,
     ExerciseSubmissionFactory,
     SessionFactory,
-    StudentGroupFactory,
+    GroupFactory,
     SubmissionFactory,
     TestCaseFactory,
     TestCaseResultFactory,
@@ -31,10 +31,10 @@ class SessionTests(CustomTestCase):
         self.assertEqual(records[0], session)
 
 
-class StudentGroupTests(CustomTestCase):
+class GroupTests(CustomTestCase):
     def test_model(self) -> None:
-        student_group = StudentGroupFactory()
-        records = self.session.exec(select(StudentGroup)).all()
+        student_group = GroupFactory()
+        records = self.session.exec(select(Group)).all()
         self.assertEqual(len(records), 1)
         self.assertEqual(records[0], student_group)
 

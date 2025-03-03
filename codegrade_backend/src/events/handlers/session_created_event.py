@@ -4,7 +4,7 @@ from src.events.handlers.schemas import (
     SessionCreationEventData,
     UserCreationSchema,
 )
-from src.models import Exercise, Session, StudentGroup, TestCase, User
+from src.models import Exercise, Session, Group, TestCase, User
 
 
 class SessionCreatedEventHandler(AbstractLifeCycleEventHandler):
@@ -39,19 +39,16 @@ class SessionCreatedEventHandler(AbstractLifeCycleEventHandler):
                 title=exercise.title,
                 question=exercise.question,
                 instructions=exercise.instructions,
-                difficulty=exercise.difficulty,
-                status=exercise.status,
-                max_score=exercise.score,
             )
 
             test_cases = [
                 TestCase(
+                    title=test_case.title,
                     external_id=test_case.external_id,
                     exercise_id=exercise_record.id,
                     test_input=test_case.test_input,
                     expected_output=test_case.expected_output,
-                    percentage_score=test_case.percentage_score,
-                    max_score=test_case.max_score,
+                    score_percentage=test_case.score_percentage,
                 )
                 for test_case in exercise.test_cases
             ]
@@ -64,16 +61,13 @@ class SessionCreatedEventHandler(AbstractLifeCycleEventHandler):
         self,
         session: Session,
         user_data: list[UserCreationSchema],
-        group: StudentGroup | None = None,
+        group: Group | None = None,
     ) -> list[User]:
         """Create new users."""
         users = [
             User(
                 external_id=user.external_id,
                 session_id=session.id,
-                first_name=user.first_name,
-                last_name=user.last_name,
-                email=user.email,
                 group_id=group.id if group else None,
             )
             for user in user_data
@@ -90,10 +84,9 @@ class SessionCreatedEventHandler(AbstractLifeCycleEventHandler):
     ) -> None:
         """Create new groups."""
         for group in group_data:
-            group_record = StudentGroup(
+            group_record = Group(
                 external_id=group.external_id,
                 session_id=session.id,
-                group_title=group.group_title,
             )
 
             users = self._create_users(

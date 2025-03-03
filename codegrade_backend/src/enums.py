@@ -1,26 +1,16 @@
 from __future__ import annotations
 
-from enum import Enum
+from enum import Enum, StrEnum
 
 
-class UserRole(Enum):
-    TUTOR: str = "tutor"
-    STUDENT: str = "student"
+class EvaluationFlagEnum(StrEnum):
+    execution = 'execution'
+    compilation = 'compilation'
+    code_quality = 'code_quality'
 
 
-class ExerciseDificulty(Enum):
-    EASY: str = "easy"
-    MODERATE: str = "moderate"
-    HARD: str = "hard"
-
-
-class ExerciseStatus(Enum):
-    COMPLEMENTARY: str = "complementary"
-    OPTIONAL: str = "optional"
-
-
-class SubmissionStatus(Enum):
-    QUEUED: str = "queued"
-    IN_PROGRESS: str = "in_progress"
-    GRADED: str = "graded"
-    FAILED: str = "failed"
+class SubmissionStatus(StrEnum):
+    QUEUED = "queued"
+    GRADING = "grading"
+    GRADED = "graded"
+    FAILED = "failed"

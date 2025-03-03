@@ -7,7 +7,7 @@ from src.events.handlers.schemas import InidividualSubmissionEventData
 from src.log import logger
 from src.models import (
     Session,
-    StudentGroup,
+    Group,
     Submission,
     User,
 )
@@ -25,16 +25,21 @@ class IndividualSubmissionEventHandler(AbstractLifeCycleEventHandler):
             )
         ).one()
 
-    def _get_student_group(
+    def _get_group_students(
         self, session: Session, external_group_id: str
-    ) -> StudentGroup:
-        """Get the student group."""
-        return self.db_session.exec(
-            select(StudentGroup).where(
-                StudentGroup.session_id == session.id,
-                StudentGroup.external_id == external_group_id,
+    ) -> list[User]:
+        """Get the students in the group."""
+        group = self.db_session.exec(
+            select(Group).where(
+                Group.session_id == session.id,
+                Group.external_id == external_group_id,
             )
         ).one()
+        
+        students = self.db_session.exec(
+            select(User).where(User.group_id == group.id)
+        ).all()
+        return students
 
     def _get_user(self, session: Session, external_user_id: str) -> User:
         """Get the user."""
@@ -48,20 +53,14 @@ class IndividualSubmissionEventHandler(AbstractLifeCycleEventHandler):
     def _create_submission(
         self,
         session: Session,
-        user: User | None,
-        group: StudentGroup | None,
+        user: User,
     ) -> Submission | None:
         """Create the submission."""
 
         submission = self.db_session.exec(
             select(Submission)
             .where(Submission.session_id == session.id)
-            .where(
-                or_(
-                    Submission.user_id == (user.id if user else None),
-                    Submission.group_id == (group.id if group else None),
-                )
-            )
+            .where(Submission.user_id == user.id)
         ).first()
 
         if submission:
@@ -69,10 +68,10 @@ class IndividualSubmissionEventHandler(AbstractLifeCycleEventHandler):
 
         submission = Submission(
             session_id=session.id,
-            user_id=user.id if user else None,
             status=SubmissionStatus.QUEUED,
+            group_id=user.group_id,
             total_score=None,
-            group_id=group.id if group else None,
+            user_id=user.id,
         )
 
         self.db_session.add(submission)
@@ -90,17 +89,24 @@ class IndividualSubmissionEventHandler(AbstractLifeCycleEventHandler):
             session = self._get_session(external_session_id)
             group, user = None, None
 
+            submissions = []
             if event_data.external_group_id:
-                group = self._get_student_group(session, event_data.external_group_id)
+                students = self._get_group_students(session, event_data.external_group_id)
+                for user in students:
+                    submission = self._create_submission(session, user, group)
+                    if submission:
+                        submissions.append(submission)
 
             if event_data.external_student_id:
                 user = self._get_user(session, event_data.external_student_id)
+                submission = self._create_submission(session, user, group)
+                if submission:
+                    submissions.append(submission)
 
-            submission = self._create_submission(session, user, group)
-
-            if submission:
+            if submissions:
                 # TODO: send the submission into grading queue.
                 pass
+
         except NoResultFound as error:
             self.db_session.rollback()
             logger.error(

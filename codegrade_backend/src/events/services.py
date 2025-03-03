@@ -1,6 +1,6 @@
 from typing import Annotated
 
-from fastapi import Body
+from fastapi import Body, Path
 
 from src.events.schemas import LifeCycleEventData
 from src.events.tasks import lifecycle_event_handler_task

@@ -1,8 +1,11 @@
-from pydantic import BaseModel, model_validator
+from pydantic import BaseModel, PositiveFloat, model_validator
+from src.enums import EvaluationFlagEnum, SubmissionStatus
 from typing_extensions import Self
 
+import uuid
 from src.events.enums import LIfeCycleEvent
 from src.events.handlers.schemas import (
+    UserJoinedSessionEventData,
     InidividualSubmissionEventData,
     SessionCreationEventData,
     SessionEndedEventData,
@@ -16,6 +19,7 @@ class LifeCycleEventData(BaseModel):
         SessionCreationEventData
         | InidividualSubmissionEventData
         | SessionEndedEventData
+        | UserJoinedSessionEventData
     )
 
     @model_validator(mode="after")
@@ -32,5 +36,9 @@ class LifeCycleEventData(BaseModel):
         elif self.event == LIfeCycleEvent.SESSION_ENDED:
             if not isinstance(self.event_data, SessionEndedEventData):
                 raise ValueError("Event data must be of type SessionEndedEventData.")
+        
+        elif self.event == LIfeCycleEvent.USER_JOINED_SESSION:
+            if not isinstance(self.event_data, UserJoinedSessionEventData):
+                raise ValueError("Event data must be of type UserJoinedSessionEventData.")
 
         return self

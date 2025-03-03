@@ -6,6 +6,7 @@ from src.events.handlers.schemas import (
     InidividualSubmissionEventData,
     SessionCreationEventData,
     SessionEndedEventData,
+    UserJoinedSessionEventData,
 )
 
 
@@ -22,6 +23,7 @@ class AbstractLifeCycleEventHandler(ABC):
         external_session_id: str,
         event_data: SessionCreationEventData
         | InidividualSubmissionEventData
+        | UserJoinedSessionEventData
         | SessionEndedEventData,
     ) -> None:
         """Handle the event data."""

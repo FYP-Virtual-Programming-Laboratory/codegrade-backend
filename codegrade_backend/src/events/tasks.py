@@ -1,6 +1,6 @@
 from typing import Any
 
-from pydantic import ValidationError
+from pydantic import UUID4, ValidationError
 from sqlmodel import Session
 
 from src.core.config import settings
@@ -11,9 +11,7 @@ from src.log import logger
 from src.worker import celery_app
 
 
-@celery_app.task(
-    name="lifecycle_event_handler_task", queue=settings.CELERY_LIFECYCLE_EVENTS_QUEUE
-)
+@celery_app.task(name="lifecycle_event_handler_task")
 def lifecycle_event_handler_task(serialized_event_data: Any) -> None:
     """Handle the lifecycle events in background."""
 
@@ -42,10 +40,22 @@ def lifecycle_event_handler_task(serialized_event_data: Any) -> None:
         )
         return
     except Exception as error:
-        print(error)
         session.rollback()  # ensure process is atomic
         logger.error(
             "src:events:tasks:lifecycle_event_handler_task:: Failed to handle event",
             extra={"serialized_event_data": serialized_event_data, "error": str(error)},
         )
-        return
+        raise error
+
+
+@celery_app.task(
+    name="grading_user_submission_task", queue=settings.CELERY_GRADING_QUEUE
+)
+def grading_user_submission_task(submission_id: UUID4) -> None:
+    """Grade a users submission."""
+
+    # get the users submissin
+    # ensure that the state of the submission is queud
+    # for each test case send a request to codelab to excute the exercise with the required test case
+    # compare results and complete grading.
+
